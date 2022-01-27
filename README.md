@@ -8,4 +8,6 @@ bombs which increases with time.
 * Move the robot character with up, down, left, righ keys.
 * Avoid the bombs while collecting the coins.
 
+> The Game is Live at https://prithvichauhan732.github.io/Robot_1.0/
+
 
