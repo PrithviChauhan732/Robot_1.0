@@ -1,0 +1,183 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Robot 1.0</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 800,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 300 },
+                debug: false
+            }
+        },
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    function preload ()
+    {
+        this.load.image('sky','Assets/sky.png');
+        this.load.image('ground','Assets/ground.png');
+        this.load.image('floor','Assets/floor.png');
+        this.load.image('robot', 'Assets/robot.png');
+        this.load.image('bomb','Assets/bomb.png');
+        this.load.image('coin','Assets/coin.png');
+        this.load.image('crate','Assets/crate.png');
+    }
+
+    var player;
+    var structure;
+    var box1; 
+    var box2;
+    var score = 0;
+    var scoreText;
+    var cursors;
+
+    function create ()
+    {
+        structure = this.physics.add.staticGroup();
+        structure.create(400,668,'ground').setScale(1.64).refreshBody();
+        structure.create(400,300, 'sky');
+        structure.create(50,340,'floor');
+        structure.create(530,390,'floor');
+        structure.create(330,160,'floor');
+        structure.create(340,500,'floor');
+        structure.create(800,220,'floor');
+        //Creating Boxes
+        box1 = this.physics.add.image(720,530,'crate').setScale(0.4);
+        box2 = this.physics.add.image(330,160,'crate').setScale(0.2);
+        box1.setCollideWorldBounds(true);
+        box2.setCollideWorldBounds(true);
+
+        player = this.physics.add.image(755, 300, 'robot').setScale(0.1);
+        player.setBounce(0.2);
+        //Inhibiting Collision with structure static objects
+        player.setCollideWorldBounds(true);
+
+        //Takes Static Object Platforms and Dynamic Robot and tests for collision and performs separation against them.
+
+        cursors = this.input.keyboard.createCursorKeys();
+
+        //Creating Coins
+        coins = this.physics.add.group();
+        coins.create(12,0,'coin').setScale(0.1);
+        coins.create(82,0,'coin').setScale(0.1);
+        coins.create(148,0,'coin').setScale(0.1);
+        coins.create(225,0,'coin').setScale(0.1);
+        coins.create(292,0,'coin').setScale(0.1);
+        coins.create(362,0,'coin').setScale(0.1);
+        coins.create(432,0,'coin').setScale(0.1);
+        coins.create(502,0,'coin').setScale(0.1);
+        coins.create(572,0,'coin').setScale(0.1);
+        coins.create(642,0,'coin').setScale(0.1);
+        coins.create(712,0,'coin').setScale(0.1);
+        coins.create(782,0,'coin').setScale(0.1);
+        coins.create(82,246,'coin').setScale(0.1);
+        coins.create(148,176,'coin').setScale(0.1);
+        coins.create(25,157,'coin').setScale(0.1);
+        coins.create(92,530,'coin').setScale(0.1);
+        coins.create(162,447,'coin').setScale(0.1);
+        coins.create(432,159,'coin').setScale(0.1);
+        coins.create(502,243,'coin').setScale(0.1);
+
+        coins.children.iterate(function (child) {
+
+            child.setBounceY(Phaser.Math.FloatBetween(0.2, 0.4));
+
+        });
+
+        bombs = this.physics.add.group();
+        
+        //Objects with colliding interactions
+        this.physics.add.collider(coins, structure);
+        this.physics.add.collider(player, structure);
+        this.physics.add.collider(player, box1);
+        this.physics.add.collider(box1, structure);
+        this.physics.add.collider(player, box2);
+        this.physics.add.collider(box2, structure);
+        this.physics.add.collider(bombs, structure);
+
+        //Showing The Score
+        scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
+
+        //Collecting Coins
+        this.physics.add.overlap(player, coins, collectCoins, null, this);
+        //Collecting Bombs !! HeHe! Sarcasm........
+        this.physics.add.collider(player, bombs, hitBomb, null, this);
+    }
+
+    function update ()
+    {
+        if (cursors.left.isDown)
+        {
+            player.setVelocityX(-160);
+        }
+        else if (cursors.right.isDown)
+        {
+            player.setVelocityX(160);
+        }
+        else
+        {
+            player.setVelocityX(0);
+        }
+
+        if (cursors.up.isDown && player.body.touching.down)
+        {
+            player.setVelocityY(-340);
+        }
+    }
+    function collectCoins (player, coin)
+    {
+        coin.disableBody(true, true); 
+
+        //Updating Score Each Time Player Overlaps With Star
+        score += 10;
+        scoreText.setText('Score: ' + score);
+
+        if (coins.countActive(true) === 0)
+        {
+            coins.children.iterate(function (child) {
+                
+                child.enableBody(true, child.x, 0, true, true);
+            });
+            var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+            var bomb = bombs.create(x, 16, 'bomb').setScale(0.24);
+            bomb.setBounce(1);
+            bomb.setCollideWorldBounds(true);
+            bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+
+        }
+    }
+    function hitBomb (player, bomb)
+    {
+        this.physics.pause();
+        player.setTint(0xff0000);
+        gameOver = true;
+
+    }
+
+</script>
+
+</body>
+</html>
